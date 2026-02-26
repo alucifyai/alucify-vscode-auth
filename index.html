@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alucify - Authentication</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .card {
+      text-align: center;
+      max-width: 420px;
+      padding: 48px 40px;
+      background: #16213e;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    .icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    .title {
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+    .message {
+      font-size: 15px;
+      line-height: 1.6;
+      color: #a0a0b8;
+      margin-bottom: 24px;
+    }
+    .hint {
+      font-size: 13px;
+      color: #707088;
+    }
+    .hint a {
+      color: #7c8dff;
+      text-decoration: none;
+    }
+    .hint a:hover {
+      text-decoration: underline;
+    }
+    .error .title { color: #f44; }
+  </style>
+</head>
+<body>
+  <div class="card" id="card">
+    <div class="icon" id="icon"></div>
+    <div class="title" id="title"></div>
+    <div class="message" id="message"></div>
+    <div class="hint" id="hint"></div>
+  </div>
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var code = params.get("code");
+      var state = params.get("state");
+      var error = params.get("error");
+      var errorDesc = params.get("error_description");
+
+      var card = document.getElementById("card");
+      var icon = document.getElementById("icon");
+      var title = document.getElementById("title");
+      var message = document.getElementById("message");
+      var hint = document.getElementById("hint");
+
+      if (error) {
+        card.classList.add("error");
+        icon.textContent = "\u2716";
+        title.textContent = "Authentication Failed";
+        message.textContent = errorDesc || error;
+        hint.textContent = "Please return to VS Code and try again.";
+        return;
+      }
+
+      if (!code || !state) {
+        icon.textContent = "\u2139\uFE0F";
+        title.textContent = "Alucify";
+        message.textContent = "This page handles authentication for the Alucify VS Code extension.";
+        hint.textContent = "Nothing to do here \u2014 sign in from the extension.";
+        return;
+      }
+
+      // Success — redirect to VS Code
+      icon.textContent = "\u2705";
+      title.textContent = "Authentication Successful";
+      message.textContent = "You\u2019re signed in. Redirecting to VS Code\u2026";
+      hint.innerHTML = 'If VS Code doesn\u2019t open automatically, <a id="manualLink" href="#">click here</a>.';
+
+      var vscodeUri = "vscode://alucify.alucify-vscode/callback"
+        + "?code=" + encodeURIComponent(code)
+        + "&state=" + encodeURIComponent(state);
+
+      document.getElementById("manualLink").href = vscodeUri;
+
+      // Also support VS Code Insiders
+      var insidersUri = vscodeUri.replace("vscode://", "vscode-insiders://");
+
+      // Try redirect after short delay so user sees the success message
+      setTimeout(function () {
+        window.location.href = vscodeUri;
+      }, 800);
+    })();
+  </script>
+</body>
+</html>
